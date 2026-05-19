@@ -25,7 +25,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# local env files (JANGAN di-push ke GitHub — berisi password!)
 .env*.local
 
 # vercel
@@ -34,3 +34,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database lokal SQLite (tidak dipakai di produksi)
+*.db
+*.sqlite
+
+# folder upload gambar lokal (jangan di-push, terlalu besar)
+/public/uploads/

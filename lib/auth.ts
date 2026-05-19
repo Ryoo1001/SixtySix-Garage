@@ -5,11 +5,13 @@ import * as schema from "./schema";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: "sqlite",
+    // Ganti dari "sqlite" ke "pg" untuk Supabase PostgreSQL
+    provider: "pg",
     schema: schema,
   }),
-  secret: process.env.BETTER_AUTH_SECRET || "secret_garage_66_auth_long_random_string_keys",
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",
+  // Gunakan environment variable — tidak pernah hard-code di sini
+  secret: process.env.BETTER_AUTH_SECRET!,
+  baseURL: process.env.BETTER_AUTH_URL!,
   user: {
     additionalFields: {
       phone: {
@@ -25,6 +27,12 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+  },
+  // Konfigurasi cookie agar kompatibel dengan Vercel (HTTPS)
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: false,
+    },
   },
 });
 

@@ -1,136 +1,160 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, real, boolean, timestamp } from "drizzle-orm/pg-core";
 
 // ==========================================
 // 🛡️ BETTER AUTH REQUIREMENT SCHEMAS
+// Menggunakan tipe PostgreSQL (pgTable + timestamp + boolean)
 // ==========================================
 
-export const user = sqliteTable("user", {
+export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("emailVerified", { mode: "boolean" }).notNull(),
+  emailVerified: boolean("emailVerified").notNull().default(false),
   image: text("image"),
-  createdAt: integer("createdAt").notNull(),
-  updatedAt: integer("updatedAt").notNull(),
-  phone: text("phone"), // Custom field mapped
-  role: text("role").default("user"), // user / admin
+  createdAt: timestamp("createdAt").notNull(),
+  updatedAt: timestamp("updatedAt").notNull(),
+  phone: text("phone"),
+  role: text("role").default("user"),
 });
 
-export const session = sqliteTable("session", {
+export const session = pgTable("session", {
   id: text("id").primaryKey(),
-  userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
-  expiresAt: integer("expiresAt").notNull(),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expiresAt").notNull(),
   token: text("token").notNull().unique(),
-  createdAt: integer("createdAt").notNull(),
-  updatedAt: integer("updatedAt").notNull(),
+  createdAt: timestamp("createdAt").notNull(),
+  updatedAt: timestamp("updatedAt").notNull(),
   ipAddress: text("ipAddress"),
   userAgent: text("userAgent"),
 });
 
-export const account = sqliteTable("account", {
+export const account = pgTable("account", {
   id: text("id").primaryKey(),
-  userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   accountId: text("accountId").notNull(),
   providerId: text("providerId").notNull(),
   accessToken: text("accessToken"),
   refreshToken: text("refreshToken"),
-  expiresAt: integer("expiresAt"),
+  expiresAt: timestamp("expiresAt"),
   password: text("password"),
-  createdAt: integer("createdAt").notNull(),
-  updatedAt: integer("updatedAt").notNull(),
+  createdAt: timestamp("createdAt").notNull(),
+  updatedAt: timestamp("updatedAt").notNull(),
 });
 
-export const verification = sqliteTable("verification", {
+export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
-  expiresAt: integer("expiresAt").notNull(),
-  createdAt: integer("createdAt"),
-  updatedAt: integer("updatedAt"),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt"),
+  updatedAt: timestamp("updatedAt"),
 });
 
 // ==========================================
 // 🏍️ SixtySixGarage BUSINESS SCHEMAS
+// Menggunakan tipe PostgreSQL (integer untuk timestamps aplikasi)
 // ==========================================
 
-export const kendaraan = sqliteTable("kendaraan", {
+export const kendaraan = pgTable("kendaraan", {
   id: text("id").primaryKey(),
-  userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   jenis: text("jenis").notNull().default("Motor"),
-  transmisi: text("transmisi").notNull(), // Matic / Manual
-  merek: text("merek").notNull(), // Kawasaki, Yamaha, Honda, dll.
-  model: text("model").notNull(), // Ninja 250, KLX 150, dll.
+  transmisi: text("transmisi").notNull(),
+  merek: text("merek").notNull(),
+  model: text("model").notNull(),
   tahun: integer("tahun"),
   cc: integer("cc").notNull(),
 });
 
-export const bookings = sqliteTable("bookings", {
+export const bookings = pgTable("bookings", {
   id: text("id").primaryKey(),
-  userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
-  kendaraanId: text("kendaraanId").notNull().references(() => kendaraan.id),
-  tanggal: text("tanggal").notNull(), // YYYY-MM-DD
-  waktu: text("waktu").notNull(), // e.g., "09:00", "13:00"
-  status: text("status").notNull().default("Pending"), // Pending, Confirmed, Cancelled, Completed
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  kendaraanId: text("kendaraanId")
+    .notNull()
+    .references(() => kendaraan.id),
+  tanggal: text("tanggal").notNull(),
+  waktu: text("waktu").notNull(),
+  status: text("status").notNull().default("Pending"),
   catatan: text("catatan"),
   createdAt: integer("createdAt").notNull(),
 });
 
-export const jenisService = sqliteTable("jenis_service", {
+export const jenisService = pgTable("jenis_service", {
   id: text("id").primaryKey(),
   nama: text("nama").notNull(),
   deskripsi: text("deskripsi"),
   hargaEstimasi: integer("harga_estimasi").notNull(),
 });
 
-export const bookingServices = sqliteTable("booking_services", {
+export const bookingServices = pgTable("booking_services", {
   id: text("id").primaryKey(),
-  bookingId: text("bookingId").notNull().references(() => bookings.id, { onDelete: "cascade" }),
-  serviceId: text("serviceId").notNull().references(() => jenisService.id),
+  bookingId: text("bookingId")
+    .notNull()
+    .references(() => bookings.id, { onDelete: "cascade" }),
+  serviceId: text("serviceId")
+    .notNull()
+    .references(() => jenisService.id),
 });
 
-export const spareparts = sqliteTable("spareparts", {
+export const spareparts = pgTable("spareparts", {
   id: text("id").primaryKey(),
   nama: text("nama").notNull(),
   kode: text("kode").notNull(),
   kategori: text("kategori"),
   harga: integer("harga").notNull(),
   stok: integer("stok").notNull().default(0),
-  kompatibilitas: text("kompatibilitas"), // JSON string array: ["Ninja 250", "Z250"]
+  kompatibilitas: text("kompatibilitas"),
   imageUrl: text("image_url"),
 });
 
-export const bookingSpareparts = sqliteTable("booking_spareparts", {
+export const bookingSpareparts = pgTable("booking_spareparts", {
   id: text("id").primaryKey(),
-  bookingId: text("bookingId").notNull().references(() => bookings.id, { onDelete: "cascade" }),
-  sparepartId: text("sparepartId").notNull().references(() => spareparts.id),
+  bookingId: text("bookingId")
+    .notNull()
+    .references(() => bookings.id, { onDelete: "cascade" }),
+  sparepartId: text("sparepartId")
+    .notNull()
+    .references(() => spareparts.id),
   qty: integer("qty").notNull(),
   hargaSaatBooking: integer("harga_saat_booking").notNull(),
 });
 
-export const oli = sqliteTable("oli", {
+export const oli = pgTable("oli", {
   id: text("id").primaryKey(),
   nama: text("nama").notNull(),
   merek: text("merek").notNull(),
-  tipeTransmisi: text("tipe_transmisi").notNull(), // Matic / Manual / Both
+  tipeTransmisi: text("tipe_transmisi").notNull(),
   viskositas: text("viskositas").notNull(),
   ccMin: integer("cc_min").notNull().default(0),
   ccMax: integer("cc_max").notNull().default(9999),
   harga: integer("harga").notNull(),
-  gradeApi: text("grade_api"), // SL, SM, SN, SP
-  rating: real("rating"), // 1.0 - 5.0
+  gradeApi: text("grade_api"),
+  rating: real("rating"),
 });
 
-export const bookingOli = sqliteTable("booking_oli", {
+export const bookingOli = pgTable("booking_oli", {
   id: text("id").primaryKey(),
-  bookingId: text("bookingId").notNull().references(() => bookings.id, { onDelete: "cascade" }),
-  oliId: text("oliId").notNull().references(() => oli.id),
+  bookingId: text("bookingId")
+    .notNull()
+    .references(() => bookings.id, { onDelete: "cascade" }),
+  oliId: text("oliId")
+    .notNull()
+    .references(() => oli.id),
   hargaSaatBooking: integer("harga_saat_booking").notNull(),
 });
 
-export const dailySlots = sqliteTable("daily_slots", {
+export const dailySlots = pgTable("daily_slots", {
   id: text("id").primaryKey(),
-  tanggal: text("tanggal").notNull().unique(), // YYYY-MM-DD
+  tanggal: text("tanggal").notNull().unique(),
   kapasitasMax: integer("kapasitas_max").notNull().default(5),
   kapasitasTerpakai: integer("kapasitas_terpakai").notNull().default(0),
-  status: text("status").notNull().default("Open"), // Open, Closed
+  status: text("status").notNull().default("Open"),
 });

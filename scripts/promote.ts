@@ -1,11 +1,13 @@
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
+import { config } from "dotenv";
+// Load .env.local agar DATABASE_URL tersedia saat menjalankan script via npm
+config({ path: ".env.local" });
+
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "../lib/schema";
 import { eq } from "drizzle-orm";
 
-const client = createClient({
-  url: "file:sqlite.db",
-});
+const client = postgres(process.env.DATABASE_URL!, { prepare: false });
 const db = drizzle(client, { schema });
 
 async function promote() {
@@ -33,6 +35,7 @@ async function promote() {
     .where(eq(schema.user.email, email));
 
   console.log(`🎉 Berhasil! Akun "${foundUser.name}" sekarang memiliki peran 'admin'!`);
+  await client.end();
   process.exit(0);
 }
 

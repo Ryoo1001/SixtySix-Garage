@@ -1,10 +1,12 @@
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
+import { config } from "dotenv";
+// Load .env.local agar DATABASE_URL tersedia saat menjalankan script via npm
+config({ path: ".env.local" });
+
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "../lib/schema";
 
-const client = createClient({
-  url: "file:sqlite.db",
-});
+const client = postgres(process.env.DATABASE_URL!, { prepare: false });
 const db = drizzle(client, { schema });
 
 const SERVICES = [
@@ -33,7 +35,7 @@ const OILS = [
 ];
 
 async function seed() {
-  console.log("🌱 Starting Database Seeding...");
+  console.log("🌱 Starting Database Seeding ke Supabase PostgreSQL...");
 
   // 1. Seed Services
   console.log("➡️ Seeding Services...");
@@ -62,7 +64,8 @@ async function seed() {
     });
   }
 
-  console.log("🎉 Database Seeded Successfully!");
+  console.log("🎉 Database Supabase Seeded Successfully!");
+  await client.end();
   process.exit(0);
 }
 
