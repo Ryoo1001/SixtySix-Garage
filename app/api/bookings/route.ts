@@ -209,7 +209,7 @@ export async function POST(req: NextRequest) {
         waktu: timeSlot,
         status: "Pending",
         catatan: notes || "",
-        createdAt: Date.now(),
+        createdAt: Math.floor(Date.now() / 1000),
       });
 
       // 4. Simpan Layanan Service
