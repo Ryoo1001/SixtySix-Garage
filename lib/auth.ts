@@ -11,7 +11,8 @@ export const auth = betterAuth({
   }),
   // Gunakan environment variable — tidak pernah hard-code di sini
   secret: process.env.BETTER_AUTH_SECRET!,
-  baseURL: process.env.BETTER_AUTH_URL!,
+  baseURL: process.env.BETTER_AUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined),
+  trustedOrigins: process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [],
   user: {
     additionalFields: {
       phone: {
